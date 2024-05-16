@@ -2,6 +2,7 @@ import librosa
 import numpy as np
 import pandas as pd
 import os
+from termcolor import cprint
 
 
 def spectral_feature_extraction(y, sr):
@@ -20,11 +21,6 @@ def rhythm_feature_extraction(y, sr):
     mean_beat_interval = np.mean(np.diff(beat_times))
 
     return tempo, mean_beat_frame, mean_beat_interval
-
-
-    # beat_times = librosa.frames_to_time(beat_frames, sr=sr)
-    # for beat in beat_times:
-    #     print('{:.2f}'.format(beat))
 
 def harmony_feature_extraction(y, sr):
     chroma = librosa.feature.chroma_stft(y=y, sr=sr)
@@ -53,13 +49,36 @@ def feature_extraction(filename):
     features = np.concatenate([spectral_features, tempo, [mean_beat_frame], [mean_beat_interval], chroma_mean, mfccs, [zcr]])
     return features
 
+# load dataset
+csv_path = './data_moods.csv'
+df = pd.read_csv(csv_path)
 
+# initialize dictionary to store features
 features = {}
-directory = './samples/'
+directory = './samples_less/'
 
-for audio in os.listdir(directory):
+# iterate over audio files and extract features
+for audio in sorted(os.listdir(directory)):
     audio_path = directory+audio
-    print(f'extracting {audio_path}\n')
+    cprint(f'extracting feature vector of {audio_path}', "cyan")
 
+    # extract features and store them in a dictionary
     features[audio_path] = feature_extraction(audio_path)
-    print(features[audio_path], f'\n\n{len(features[audio_path])} features extracted\n')
+    # print(features[audio_path], f'\n{len(features[audio_path])} features extracted\n')
+    print(f'{features[audio_path]}\n')
+
+print(features)
+
+# convert features dict to a DataFrame
+features_df = pd.DataFrame.from_dict(features, orient='index')
+
+print(features_df)
+
+# merge original data_moods DF with the new features DF
+df_merged = df.join(features_df)
+
+# save new DF to a csv file
+output_csv_path = 'updated_data_moods.csv'
+df_merged.to_csv(output_csv_path, index=False)
+
+cprint(f'updated dataset writted to {output_csv_path}', "cyan")
