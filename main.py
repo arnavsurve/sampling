@@ -49,36 +49,34 @@ def feature_extraction(filename):
     features = np.concatenate([spectral_features, tempo, [mean_beat_frame], [mean_beat_interval], chroma_mean, mfccs, [zcr]])
     return features
 
-# load dataset
 csv_path = './data_moods.csv'
 df = pd.read_csv(csv_path)
 
-# initialize dictionary to store features
-features = {}
-directory = './samples_less/'
+# Initialize list to store features
+features_list = []
+directory = './samples/'
+audio_files = sorted(os.listdir(directory))
 
-# iterate over audio files and extract features
-for audio in sorted(os.listdir(directory)):
-    audio_path = directory+audio
-    cprint(f'extracting feature vector of {audio_path}', "cyan")
+for audio in audio_files:
+    if audio.endswith('.mp3'):
+        audio_path = os.path.join(directory, audio)
+        cprint(f'Extracting feature vector for {audio_path}', "cyan")
+        features = feature_extraction(audio_path)
+        features_list.append(features)
 
-    # extract features and store them in a dictionary
-    features[audio_path] = feature_extraction(audio_path)
-    # print(features[audio_path], f'\n{len(features[audio_path])} features extracted\n')
-    print(f'{features[audio_path]}\n')
+# Adjust the number of columns based on actual features extracted
+feature_names = ['Spectral Centroid', 'Spectral Rolloff', 'Spectral Bandwidth', 'Tempo', 'Mean Beat Frame', 'Mean Beat Interval'] + \
+                ['Chroma Mean' + str(i) for i in range(12)] + \
+                ['MFCC' + str(i) for i in range(13)] + ['ZCR']
 
-print(features)
+# Create DataFrame from the features list
+features_df = pd.DataFrame(features_list, columns=feature_names)
 
-# convert features dict to a DataFrame
-features_df = pd.DataFrame.from_dict(features, orient='index')
+# Concatenate original DataFrame with the features DataFrame
+df_merged = pd.concat([df, features_df], axis=1)
 
-print(features_df)
-
-# merge original data_moods DF with the new features DF
-df_merged = df.join(features_df)
-
-# save new DF to a csv file
+# Save the merged DataFrame
 output_csv_path = 'updated_data_moods.csv'
 df_merged.to_csv(output_csv_path, index=False)
 
-cprint(f'updated dataset written to {output_csv_path}', "cyan")
+cprint(f'Updated dataset written to {output_csv_path}', "green")
