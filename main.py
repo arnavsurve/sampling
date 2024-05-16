@@ -1,23 +1,65 @@
-# Beat tracking example
 import librosa
+import numpy as np
+import pandas as pd
+import os
 
-# 1. Get the file path to an included audio example
-filename = librosa.example('nutcracker')
+
+def spectral_feature_extraction(y, sr):
+    spectral_centroids = librosa.feature.spectral_centroid(y=y, sr=sr)[0]
+    spectral_rolloff = librosa.feature.spectral_rolloff(y=y, sr=sr)[0]
+    spectral_bandwidth = librosa.feature.spectral_bandwidth(y=y, sr=sr)[0]
+
+    return np.mean(spectral_centroids), np.mean(spectral_rolloff), np.mean(spectral_bandwidth)
 
 
-# 2. Load the audio as a waveform `y`
-#    Store the sampling rate as `sr`
-y, sr = librosa.load(filename)
+def rhythm_feature_extraction(y, sr):
+    tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
+    beat_times = librosa.frames_to_time(beat_frames, sr=sr)
 
-# 3. Run the default beat tracker
-tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
+    mean_beat_frame = np.mean(beat_frames)
+    mean_beat_interval = np.mean(np.diff(beat_times))
 
-print(tempo)
+    return tempo, mean_beat_frame, mean_beat_interval
 
-# print('Estimated tempo: {:.2f} beats per minute'.format(tempo))
 
-# 4. Convert the frame indices of beat events into timestamps
-beat_times = librosa.frames_to_time(beat_frames, sr=sr)
+    # beat_times = librosa.frames_to_time(beat_frames, sr=sr)
+    # for beat in beat_times:
+    #     print('{:.2f}'.format(beat))
 
-for beat in beat_times:
-    print(beat)
+def harmony_feature_extraction(y, sr):
+    chroma = librosa.feature.chroma_stft(y=y, sr=sr)
+    return np.mean(chroma, axis=1)
+
+def timbral_feature_extraction(y, sr):
+    mfccs = np.mean(librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13), axis=1)
+    zcr = np.mean(librosa.feature.zero_crossing_rate(y))
+
+    return mfccs, zcr
+
+def feature_extraction(filename):
+    # load audio file
+    y, sr = librosa.load(filename, res_type='kaiser_fast')
+
+    # extract different features
+    spectral_features = spectral_feature_extraction(y, sr)
+    tempo = rhythm_feature_extraction(y, sr)[0]
+    mean_beat_frame = rhythm_feature_extraction(y, sr)[1]
+    mean_beat_interval = rhythm_feature_extraction(y, sr)[2]
+    chroma_mean = harmony_feature_extraction(y, sr)
+    mfccs = timbral_feature_extraction(y, sr)[0]
+    zcr = timbral_feature_extraction(y, sr)[1]
+
+    # combine all features into a single feature vector
+    features = np.concatenate([spectral_features, tempo, [mean_beat_frame], [mean_beat_interval], chroma_mean, mfccs, [zcr]])
+    return features
+
+
+features = {}
+directory = './samples/'
+
+for audio in os.listdir(directory):
+    audio_path = directory+audio
+    print(f'extracting {audio_path}\n')
+
+    features[audio_path] = feature_extraction(audio_path)
+    print(features[audio_path], f'\n\n{len(features[audio_path])} features extracted\n')
