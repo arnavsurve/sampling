@@ -81,4 +81,4 @@ df_merged = df.join(features_df)
 output_csv_path = 'updated_data_moods.csv'
 df_merged.to_csv(output_csv_path, index=False)
 
-cprint(f'updated dataset writted to {output_csv_path}', "cyan")
+cprint(f'updated dataset written to {output_csv_path}', "cyan")
