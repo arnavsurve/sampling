@@ -12,6 +12,7 @@ from youtube_search import YoutubeSearch
 
 from pydub import AudioSegment
 
+# search for a song on youtube and get the first result's URL
 def search_youtube(song_name):
     results = YoutubeSearch(song_name, max_results=1).to_dict()
     if results:
@@ -20,14 +21,17 @@ def search_youtube(song_name):
         return video_url
     return None
 
-def download(url, output_path):
+# download audio from a youtube URL and convert it to MP3
+def download(url, song_name, output_path='samples'):
     try:
         yt = YouTube(url, on_progress_callback=on_progress)
         stream = yt.streams.filter(only_audio=True).first()
         download_path = stream.download(output_path=output_path)
 
-        base, ext = os.path.splitext(download_path)
-        mp3_path = base + '.mp3'
+        # base, ext = os.path.splitext(download_path)
+        # mp3_path = base + '.mp3'
+        mp3_path = os.path.join(output_path, f'{song_name}.mp3')
+
 
         audio = AudioSegment.from_file(download_path)
         audio.export(mp3_path, format='mp3')
@@ -36,7 +40,6 @@ def download(url, output_path):
 
         return mp3_path
 
-            
     except PytubeError:
         print(f"error downloading {url}: {e}")
 
@@ -44,20 +47,25 @@ def download(url, output_path):
 # load song names from dataset
 dataset = input("enter dataset (.csv) to read from: ")
 song_df = pd.read_csv(dataset)
-column = input("enter column to read names from: ")
-song_names = song_df['name'].tolist()
+
+# ensure the correct column names
+if 'name' not in song_df.columns or 'artist' not in song_df.columns:
+    raise KeyError("The CSV file must contain 'name' and 'artist' columns.")
+
+songs_and_artists = song_df[['name', 'artist']].values
 
 # process each song
-for song in song_names:
-    cprint(f'searching for: {song}', 'cyan')
-    url = search_youtube(song)
+for song, artist in songs_and_artists:
+    query = f'{song} - {artist}'
+    cprint(f'searching for: {query}', 'cyan')
+    url = search_youtube(query)
     if url:
         print(f'found URL: {url}')
-        mp3_path = download(url, output_path='samples')
+        mp3_path = download(url, song, 'samples/')
         if mp3_path:
             cprint(f'downloaded and saved as: {mp3_path}', 'green')
         else:
-            cprint(f'failed to download {song} - ({url})', 'red')
+            cprint(f'failed to download {query} - ({url})', 'red')
 
     else:
         cprint(f'no results found for {song}!', 'red')
