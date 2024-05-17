@@ -33,9 +33,11 @@ prompt-toolkit==3.0.43
 ptyprocess==0.7.0
 pure-eval==0.2.2
 pycparser==2.22
+pydub==0.25.1
 Pygments==2.18.0
 pyparsing==3.1.2
 python-dateutil==2.9.0.post0
+pytube==15.0.0
 pytz==2024.1
 redis==5.0.4
 requests==2.31.0
@@ -55,3 +57,4 @@ typing_extensions==4.11.0
 tzdata==2024.1
 urllib3==2.2.1
 wcwidth==0.2.13
+youtube-search==2.1.2
