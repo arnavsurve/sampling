@@ -23,15 +23,18 @@ def search_youtube(song_name):
 
 # download audio from a youtube URL and convert it to MP3
 def download(url, song_name, output_path='samples'):
-    try:
-        yt = YouTube(url, on_progress_callback=on_progress)
-        stream = yt.streams.filter(only_audio=True).first()
-        download_path = stream.download(output_path=output_path)
+    yt = YouTube(url, on_progress_callback=on_progress)
+    stream = yt.streams.filter(only_audio=True).first()
+    download_path = stream.download(output_path=output_path)
 
+    if '/' in song_name:
+        print(f"Skipping download for {song_name} due to invalid character '/' in name. Please download manually.")
+        return None
+
+    try:
         # base, ext = os.path.splitext(download_path)
         # mp3_path = base + '.mp3'
         mp3_path = os.path.join(output_path, f'{song_name}.mp3')
-
 
         audio = AudioSegment.from_file(download_path)
         audio.export(mp3_path, format='mp3')
@@ -41,7 +44,8 @@ def download(url, song_name, output_path='samples'):
         return mp3_path
 
     except PytubeError:
-        print(f"error downloading {url}: {e}")
+        print(f"error downloading {url}")
+        os.remove(download_path)
 
 
 # load song names from dataset
@@ -56,16 +60,21 @@ songs_and_artists = song_df[['name', 'artist']].values
 
 # process each song
 for song, artist in songs_and_artists:
-    query = f'{song} - {artist}'
-    cprint(f'searching for: {query}', 'cyan')
-    url = search_youtube(query)
-    if url:
-        print(f'found URL: {url}')
-        mp3_path = download(url, song, 'samples/')
-        if mp3_path:
-            cprint(f'downloaded and saved as: {mp3_path}', 'green')
-        else:
-            cprint(f'failed to download {query} - ({url})', 'red')
-
+    filepath = f"./samples/{song}.mp3"
+    if os.path.exists(filepath):
+        print(f'{filepath} already exists, skipping')
+        continue
     else:
-        cprint(f'no results found for {song}!', 'red')
+        query = f'{song} - {artist}'
+        cprint(f'searching for: {query}', 'cyan')
+        url = search_youtube(query)
+        if url:
+            print(f'found URL: {url}')
+            mp3_path = download(url, song, 'samples/')
+            if mp3_path:
+                cprint(f'downloaded and saved as: {mp3_path}', 'green')
+            else:
+                cprint(f'failed to download {query} - ({url})', 'red')
+
+        else:
+            cprint(f'no results found for {song}!', 'red')
