@@ -1,4 +1,6 @@
 .DS_Store
+samples/
+samples.zip
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
