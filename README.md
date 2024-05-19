@@ -5,7 +5,7 @@ Dataset sourced from [kaggle](https://www.kaggle.com/datasets/musicblogger/spoti
 To activate virtual environment:
 ```
 python3 -m venv env
-source ./env/bin/activate
+source env/bin/activate
 
 pip install -r requirements.txt
 ```
