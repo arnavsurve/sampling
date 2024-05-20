@@ -1,9 +1,5 @@
 import librosa
 import numpy as np
-# import pandas as pd
-# import os
-# from termcolor import cprint
-
 
 def spectral_feature_extraction(y, sr):
     spectral_centroids = librosa.feature.spectral_centroid(y=y, sr=sr)[0]

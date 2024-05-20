@@ -1,10 +1,8 @@
-import librosa
-import numpy as np
 import pandas as pd
 import os
 from termcolor import cprint
 
-import similarity
+import feature_extraction
 
 csv_path = './data_moods.csv'
 df = pd.read_csv(csv_path)
@@ -18,7 +16,7 @@ for audio in audio_files:
     if audio.endswith('.mp3'):
         audio_path = os.path.join(directory, audio)
         cprint(f'Extracting feature vector for {audio_path}', "cyan")
-        features = similarity.feature_extraction(audio_path)
+        features = feature_extraction.feature_extraction(audio_path)
         features_list.append(features)
 
 # Adjust the number of columns based on actual features extracted
