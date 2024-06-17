@@ -63,16 +63,13 @@ def calculate_similarity(features):
 
 
 def calculate_hit_rate(features, data):
-    # ensure length of features and data is the same
-    if len(features) != len(data):
-        raise ValueError('Length of features and data must be the same.')
-
     # split data into training and test set
     X_train, X_test, y_train, y_test = train_test_split(features, data[['artist', 'name']], test_size=0.2, random_state=42)
 
     # Convert y_train and y_test back to DataFrames
     y_train = pd.DataFrame(y_train, columns=['artist', 'name'])
     y_test = pd.DataFrame(y_test, columns=['artist', 'name'])
+
 
     # train a KNN model on the training set
     knn = NearestNeighbors(n_neighbors=1)
