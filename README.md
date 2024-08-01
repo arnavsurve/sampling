@@ -1,4 +1,4 @@
-# music-ai-art-and-love
+# sampling
 
 Dataset sourced from [kaggle](https://www.kaggle.com/datasets/musicblogger/spotify-music-data-to-identify-the-moods?resource=download)
 
